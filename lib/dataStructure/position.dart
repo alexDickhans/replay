@@ -6,10 +6,31 @@ class Position {
   Position({required this.x, required this.y, this.t});
 
   factory Position.fromJson(Map<String, dynamic> json) {
+    double x;
+    if (json['x'] is int) {
+      x = (json['x'] as int).toDouble();
+    } else {
+      x = json['x'];
+    }
+
+    double y;
+    if (json['y'] is int) {
+      y = (json['y'] as int).toDouble();
+    } else {
+      y = json['y'];
+    }
+
+    double? t;
+    if (json['t'] is int) {
+      t = (json['t'] as int).toDouble();
+    } else {
+      t = json['t'];
+    }
+
     return Position(
-      x: json['x'],
-      y: json['y'],
-      t: json['t'],
+      x: x,
+      y: y,
+      t: t,
     );
   }
 
@@ -18,7 +39,7 @@ class Position {
   }
 
   double getYScreen(double screenHeight, double fieldWidth) {
-    return (-y / fieldWidth + 0.5) * screenHeight;
+    return (y / fieldWidth + 0.5) * screenHeight;
   }
 
   // tostring

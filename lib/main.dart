@@ -45,6 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Duration _duration = const Duration();
   Duration lastTime = const Duration();
 
+  List<double> savedTime = [];
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
       Map<String, dynamic> json = await jsonDecode(contents);
       setState(() {
         positionLists.add((PositionList.fromJson(json), 0.0));
+        savedTime.add(0.0);
       });
     }
   }
@@ -82,15 +85,16 @@ class _MyHomePageState extends State<MyHomePage> {
     Duration interval = timeinfo - lastTime;
     lastTime = timeinfo;
 
-    print("frameCallback");
-
     if (_play) {
       // Update the countdown value and decrement by 1 second
       setState(() {
         // Update the time for each of the positionLists
         for (int i = 0; i < positionLists.length; i++) {
           if (positionLists[i].$2 < positionLists[i].$1.maxTime()) {
-            positionLists[i] = (positionLists[i].$1, positionLists[i].$2 + interval.inMilliseconds / 1000.0);
+            positionLists[i] = (
+            positionLists[i].$1,
+            positionLists[i].$2 + interval.inMilliseconds / 1000.0
+            );
           }
         }
       });
@@ -102,13 +106,16 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     // Get the list of robots from positionLists at time t
     List<List<Position>> robots =
-        positionLists.map((e) => e.$1.getPositions(e.$2)).toList();
+    positionLists.map((e) => e.$1.getPositions(e.$2)).toList();
 
     bool playing = false;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
         title: Text(widget.title),
       ),
       body: Row(
@@ -131,19 +138,36 @@ class _MyHomePageState extends State<MyHomePage> {
                               },
                               icon: const Icon(Icons.add)),
                         ),
-                        IconButton.filledTonal(
-                            isSelected: _play,
-                            icon: const Icon(Icons.play_arrow),
-                            selectedIcon: const Icon(Icons.pause),
+                        Expanded(
+                          child: IconButton.filledTonal(
+                              isSelected: _play,
+                              icon: const Icon(Icons.play_arrow),
+                              selectedIcon: const Icon(Icons.pause),
+                              onPressed: () {
+                                setState(() {
+                                  if (!_play) {
+                                    startTimer();
+                                  } else {
+                                    stopTimer();
+                                  }
+                                });
+                              }),
+                        ),
+                        Expanded(
+                            child: IconButton.filledTonal(
+                                onPressed: () {
+                                  setState(() {
+                                    savedTime = positionLists.map((e) => e.$2).toList();
+                                  });
+                                }, icon: const Icon(Icons.save))),
+                        Expanded(child: IconButton.filledTonal(
                             onPressed: () {
                               setState(() {
-                                if (!_play) {
-                                  startTimer();
-                                } else {
-                                  stopTimer();
+                                for (int i = 0; i < positionLists.length; i++) {
+                                  positionLists[i] = (positionLists[i].$1, savedTime[i]);
                                 }
                               });
-                            }),
+                            }, icon: const Icon(Icons.restore)))
                       ],
                     ),
                     SizedBox(
@@ -167,15 +191,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                         min: positionLists[index].$1.minTime(),
                                         max: positionLists[index].$1.maxTime(),
                                         label:
-                                            positionLists[index].$2.toString(),
+                                        positionLists[index].$2.toString(),
                                         value: positionLists[index].$2.clamp(
                                             positionLists[index].$1.minTime(),
                                             positionLists[index].$1.maxTime()),
                                         onChanged: (value) {
                                           setState(() {
                                             positionLists[index] = (
-                                              positionLists[index].$1,
-                                              value
+                                            positionLists[index].$1,
+                                            value
                                             );
                                           });
                                         }),
