@@ -23,8 +23,10 @@ class Position {
     double? t;
     if (json['t'] is int) {
       t = (json['t'] as int).toDouble();
-    } else {
+    } else if (json['t'] is double){
       t = json['t'];
+    } else {
+      t = null;
     }
 
     return Position(

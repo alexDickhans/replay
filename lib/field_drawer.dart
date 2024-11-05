@@ -14,7 +14,7 @@ class PathDrawer extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.blue
-      ..strokeWidth = 3
+      ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -46,7 +46,7 @@ class PathDrawer extends CustomPainter {
         canvas.drawCircle(
           Offset(robots[i][j].getXScreen(size.width, fieldWidth),
               robots[i][j].getYScreen(size.height, fieldWidth)),
-          3,
+          1.5,
           paint,
         );
       }

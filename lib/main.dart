@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -41,7 +42,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<(PositionList, double)> positionLists = [];
 
-  bool _play = false;
+  double _play_mult = 0.0;
   Duration _duration = const Duration();
   Duration lastTime = const Duration();
 
@@ -67,33 +68,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void startTimer() {
-    _play = true;
-  }
-
   void _scheduleTick() {
     SchedulerBinding.instance.scheduleFrameCallback((timestamp) {
       frameCallback(timestamp);
     });
   }
 
-  void stopTimer() {
-    _play = false;
-  }
-
   void frameCallback(Duration timeinfo) {
     Duration interval = timeinfo - lastTime;
     lastTime = timeinfo;
 
-    if (_play) {
+    if (_play_mult != 0.0) {
       // Update the countdown value and decrement by 1 second
       setState(() {
         // Update the time for each of the positionLists
         for (int i = 0; i < positionLists.length; i++) {
           if (positionLists[i].$2 < positionLists[i].$1.maxTime()) {
             positionLists[i] = (
-            positionLists[i].$1,
-            positionLists[i].$2 + interval.inMilliseconds / 1000.0
+              positionLists[i].$1,
+              positionLists[i].$2 + _play_mult * interval.inMilliseconds / 1000.0
             );
           }
         }
@@ -106,127 +99,168 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     // Get the list of robots from positionLists at time t
     List<List<Position>> robots =
-    positionLists.map((e) => e.$1.getPositions(e.$2)).toList();
+        positionLists.map((e) => e.$1.getPositions(e.$2)).toList();
 
     bool playing = false;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 100),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: IconButton.filledTonal(
-                              onPressed: () {
-                                // Open file
-                                _openFile();
-                              },
-                              icon: const Icon(Icons.add)),
-                        ),
-                        Expanded(
-                          child: IconButton.filledTonal(
-                              isSelected: _play,
-                              icon: const Icon(Icons.play_arrow),
-                              selectedIcon: const Icon(Icons.pause),
-                              onPressed: () {
-                                setState(() {
-                                  if (!_play) {
-                                    startTimer();
-                                  } else {
-                                    stopTimer();
-                                  }
-                                });
-                              }),
-                        ),
-                        Expanded(
+      body: DropTarget(
+        onDragDone: (details) async {
+          if (details.files.isNotEmpty) {
+            // Go through each item and add it to the list
+            for (var i = 0; i < details.files.length; i++) {
+              File file = File(details.files[i].path);
+              String contents = await file.readAsString();
+              Map<String, dynamic> json = await jsonDecode(contents);
+              setState(() {
+                positionLists.add((PositionList.fromJson(json), 0.0));
+                savedTime.add(0.0);
+              });
+            }
+          }
+        },
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 100),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
                             child: IconButton.filledTonal(
                                 onPressed: () {
+                                  // Open file
+                                  _openFile();
+                                },
+                                icon: const Icon(Icons.add)),
+                          ),
+                          Expanded(
+                            child: IconButton.filledTonal(
+                                isSelected: _play_mult != 0.0,
+                                icon: const Icon(Icons.replay),
+                                selectedIcon: const Icon(Icons.pause),
+                                onPressed: () {
                                   setState(() {
-                                    savedTime = positionLists.map((e) => e.$2).toList();
+                                    if (_play_mult == 0.0) {
+                                      _play_mult = -1.0;
+                                    } else {
+                                      _play_mult = 0.0;
+                                    }
                                   });
-                                }, icon: const Icon(Icons.save))),
-                        Expanded(child: IconButton.filledTonal(
-                            onPressed: () {
-                              setState(() {
-                                for (int i = 0; i < positionLists.length; i++) {
-                                  positionLists[i] = (positionLists[i].$1, savedTime[i]);
-                                }
-                              });
-                            }, icon: const Icon(Icons.restore)))
-                      ],
-                    ),
-                    SizedBox(
-                      height: 500,
-                      child: ListView.builder(
-                          itemCount: positionLists.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Row(
-                                children: [
-                                  IconButton.filledTonal(
-                                      onPressed: () {
-                                        setState(() {
-                                          positionLists.removeAt(index);
-                                        });
-                                      },
-                                      icon: const Icon(Icons.delete)),
-                                  Expanded(
-                                    child: Slider(
-                                        min: positionLists[index].$1.minTime(),
-                                        max: positionLists[index].$1.maxTime(),
-                                        label:
-                                        positionLists[index].$2.toString(),
-                                        value: positionLists[index].$2.clamp(
-                                            positionLists[index].$1.minTime(),
-                                            positionLists[index].$1.maxTime()),
-                                        onChanged: (value) {
+                                }),
+                          ),
+                          Expanded(
+                            child: IconButton.filledTonal(
+                                isSelected: _play_mult != 0.0,
+                                icon: const Icon(Icons.play_arrow),
+                                selectedIcon: const Icon(Icons.pause),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_play_mult == 0.0) {
+                                      _play_mult = 1.0;
+                                    } else {
+                                      _play_mult = 0.0;
+                                    }
+                                  });
+                                }),
+                          ),
+                          Expanded(
+                              child: IconButton.filledTonal(
+                                  onPressed: () {
+                                    setState(() {
+                                      savedTime = positionLists
+                                          .map((e) => e.$2)
+                                          .toList();
+                                    });
+                                  },
+                                  icon: const Icon(Icons.save))),
+                          Expanded(
+                              child: IconButton.filledTonal(
+                                  onPressed: () {
+                                    setState(() {
+                                      for (int i = 0;
+                                          i < positionLists.length;
+                                          i++) {
+                                        positionLists[i] =
+                                            (positionLists[i].$1, savedTime[i]);
+                                      }
+                                    });
+                                  },
+                                  icon: const Icon(Icons.restore)))
+                        ],
+                      ),
+                      SizedBox(
+                        height: 500,
+                        child: ListView.builder(
+                            itemCount: positionLists.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Row(
+                                  children: [
+                                    IconButton.filledTonal(
+                                        onPressed: () {
                                           setState(() {
-                                            positionLists[index] = (
-                                            positionLists[index].$1,
-                                            value
-                                            );
+                                            positionLists.removeAt(index);
                                           });
-                                        }),
-                                  )
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
-                  ],
+                                        },
+                                        icon: const Icon(Icons.delete)),
+                                    Expanded(
+                                      child: Slider(
+                                          min:
+                                              positionLists[index].$1.minTime(),
+                                          max:
+                                              positionLists[index].$1.maxTime(),
+                                          label: positionLists[index]
+                                              .$2
+                                              .toString(),
+                                          value: positionLists[index].$2.clamp(
+                                              positionLists[index].$1.minTime(),
+                                              positionLists[index]
+                                                  .$1
+                                                  .maxTime()),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              positionLists[index] = (
+                                                positionLists[index].$1,
+                                                value
+                                              );
+                                            });
+                                          }),
+                                    )
+                                  ],
+                                ),
+                              );
+                            }),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              children: [
-                Image.asset("assets/empty.png"),
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: PathDrawer(robots),
-                ),
-              ],
+            AspectRatio(
+              aspectRatio: 1,
+              child: Stack(
+                children: [
+                  Image.asset("assets/empty.png"),
+                  CustomPaint(
+                    size: Size.infinite,
+                    painter: PathDrawer(robots),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
