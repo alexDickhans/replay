@@ -41,6 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<(PositionList, double)> positionLists = [];
+  List<List<Position>> paths = [];
 
   double _play_mult = 0.0;
   Duration _duration = const Duration();
@@ -54,17 +55,27 @@ class _MyHomePageState extends State<MyHomePage> {
     _scheduleTick();
   }
 
+  @override
+  void reassemble() {
+    // TODO: implement reassemble
+    super.reassemble();
+  }
+
   void _openFile() async {
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(type: FileType.custom, allowedExtensions: ['json']);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        allowMultiple: true);
     if (result != null) {
-      File file = File(result.files.single.path!);
-      String contents = await file.readAsString();
-      Map<String, dynamic> json = await jsonDecode(contents);
-      setState(() {
-        positionLists.add((PositionList.fromJson(json), 0.0));
-        savedTime.add(0.0);
-      });
+      for (var file in result.files) {
+        File f = File(file.path!);
+        String contents = await f.readAsString();
+        Map<String, dynamic> json = await jsonDecode(contents);
+        setState(() {
+          positionLists.add((PositionList.fromJson(json), 0.0));
+          savedTime.add(0.0);
+        });
+      }
     }
   }
 
@@ -86,7 +97,8 @@ class _MyHomePageState extends State<MyHomePage> {
           if (positionLists[i].$2 < positionLists[i].$1.maxTime()) {
             positionLists[i] = (
               positionLists[i].$1,
-              positionLists[i].$2 + _play_mult * interval.inMilliseconds / 1000.0
+              positionLists[i].$2 +
+                  _play_mult * interval.inMilliseconds / 1000.0
             );
           }
         }
@@ -100,6 +112,17 @@ class _MyHomePageState extends State<MyHomePage> {
     // Get the list of robots from positionLists at time t
     List<List<Position>> robots =
         positionLists.map((e) => e.$1.getPositions(e.$2)).toList();
+
+    for (int i = 0; i < robots.length; i++) {
+      if (robots[i].length == 1) {
+        // check to make sure there are enough paths
+        while (paths.length <= i) {
+          paths.add([]);
+        }
+
+        paths[i].add(robots[i][0]);
+      }
+    }
 
     bool playing = false;
 
@@ -195,7 +218,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                       }
                                     });
                                   },
-                                  icon: const Icon(Icons.restore)))
+                                  icon: const Icon(Icons.restore))),
+                          Expanded(child: IconButton.filledTonal(
+                              onPressed: () {
+                                setState(() {
+                                  paths.clear();
+                                });
+                              },
+                              icon: const Icon(Icons.clear))),
                         ],
                       ),
                       SizedBox(
@@ -254,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Image.asset("assets/empty.png"),
                   CustomPaint(
                     size: Size.infinite,
-                    painter: PathDrawer(robots),
+                    painter: PathDrawer(robots, paths),
                   ),
                 ],
               ),

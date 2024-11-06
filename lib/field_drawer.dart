@@ -7,8 +7,9 @@ const double fieldWidth = 3.676414;
 
 class PathDrawer extends CustomPainter {
   List<List<Position>> robots;
+  List<List<Position>> paths;
 
-  PathDrawer(this.robots);
+  PathDrawer(this.robots, this.paths);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -47,6 +48,17 @@ class PathDrawer extends CustomPainter {
           Offset(robots[i][j].getXScreen(size.width, fieldWidth),
               robots[i][j].getYScreen(size.height, fieldWidth)),
           1.5,
+          paint,
+        );
+      }
+
+      // Draw the path of the robot
+      for (var j = 0; j < paths[i].length - 1; j++) {
+        canvas.drawLine(
+          Offset(paths[i][j].getXScreen(size.width, fieldWidth),
+              paths[i][j].getYScreen(size.height, fieldWidth)),
+          Offset(paths[i][j + 1].getXScreen(size.width, fieldWidth),
+              paths[i][j + 1].getYScreen(size.height, fieldWidth)),
           paint,
         );
       }
