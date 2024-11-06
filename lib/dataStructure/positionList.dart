@@ -6,12 +6,14 @@ import 'positionTimestamp.dart';
 
 class PositionList {
   final List<PositionTimestamp> positionList;
+  final String filename;
 
-  PositionList({required this.positionList});
+  PositionList({required this.positionList, this.filename = ''});
 
-  factory PositionList.fromJson(Map<String, dynamic> json) {
+  factory PositionList.fromJson(Map<String, dynamic> json, String filename) {
     return PositionList(
       positionList: List<PositionTimestamp>.from(json['data'].map((x) => PositionTimestamp.fromJson(x))),
+      filename: filename,
     );
   }
 

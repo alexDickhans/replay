@@ -5,10 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:replay/dataStructure/positionTimestamp.dart';
+import 'package:replay/utils.dart';
 import 'dataStructure/position.dart';
 import 'dataStructure/positionList.dart';
 import 'field_drawer.dart';
 import 'dart:io';
+import 'package:path/path.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,7 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
         String contents = await f.readAsString();
         Map<String, dynamic> json = await jsonDecode(contents);
         setState(() {
-          positionLists.add((PositionList.fromJson(json), 0.0));
+          positionLists.add((
+            PositionList.fromJson(json, basenameWithoutExtension(f.path)),
+            0.0
+          ));
           savedTime.add(0.0);
         });
       }
@@ -140,7 +145,11 @@ class _MyHomePageState extends State<MyHomePage> {
               String contents = await file.readAsString();
               Map<String, dynamic> json = await jsonDecode(contents);
               setState(() {
-                positionLists.add((PositionList.fromJson(json), 0.0));
+                positionLists.add((
+                  PositionList.fromJson(
+                      json, basenameWithoutExtension(file.path)),
+                  0.0
+                ));
                 savedTime.add(0.0);
               });
             }
@@ -219,13 +228,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   },
                                   icon: const Icon(Icons.restore))),
-                          Expanded(child: IconButton.filledTonal(
-                              onPressed: () {
-                                setState(() {
-                                  paths.clear();
-                                });
-                              },
-                              icon: const Icon(Icons.clear))),
+                          Expanded(
+                              child: IconButton.filledTonal(
+                                  onPressed: () {
+                                    setState(() {
+                                      paths.clear();
+                                    });
+                                  },
+                                  icon: const Icon(Icons.clear))),
                         ],
                       ),
                       SizedBox(
@@ -238,34 +248,50 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Row(
                                   children: [
                                     IconButton.filledTonal(
-                                        onPressed: () {
-                                          setState(() {
-                                            positionLists.removeAt(index);
-                                          });
-                                        },
-                                        icon: const Icon(Icons.delete)),
+                                      onPressed: () {
+                                        setState(() {
+                                          positionLists.removeAt(index);
+                                        });
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                      color: getColor(index),
+                                    ),
                                     Expanded(
-                                      child: Slider(
-                                          min:
-                                              positionLists[index].$1.minTime(),
-                                          max:
-                                              positionLists[index].$1.maxTime(),
-                                          label: positionLists[index]
-                                              .$2
-                                              .toString(),
-                                          value: positionLists[index].$2.clamp(
-                                              positionLists[index].$1.minTime(),
-                                              positionLists[index]
+                                      child: Column(
+                                        children: [
+                                          Slider(
+                                              min: positionLists[index]
                                                   .$1
-                                                  .maxTime()),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              positionLists[index] = (
-                                                positionLists[index].$1,
-                                                value
-                                              );
-                                            });
-                                          }),
+                                                  .minTime(),
+                                              max: positionLists[index]
+                                                  .$1
+                                                  .maxTime(),
+                                              label: positionLists[index]
+                                                  .$2
+                                                  .toString(),
+                                              value: positionLists[index]
+                                                  .$2
+                                                  .clamp(
+                                                      positionLists[index]
+                                                          .$1
+                                                          .minTime(),
+                                                      positionLists[index]
+                                                          .$1
+                                                          .maxTime()),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  positionLists[index] = (
+                                                    positionLists[index].$1,
+                                                    value
+                                                  );
+                                                });
+                                              }),
+                                          Text(
+                                            style: const TextStyle(
+                                                fontSize: 10),
+                                              positionLists[index].$1.filename),
+                                        ],
+                                      ),
                                     )
                                   ],
                                 ),

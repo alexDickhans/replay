@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:replay/utils.dart';
 import 'dataStructure/position.dart';
 
 const double fieldWidth = 3.676414;
@@ -21,27 +22,7 @@ class PathDrawer extends CustomPainter {
 
     // Go through the robot positions painting each list of positions with a different color, represent robots as circles
     for (var i = 0; i < robots.length; i++) {
-      if (i % 10 == 0) {
-        paint.color = Colors.blue;
-      } else if (i % 10 == 1) {
-        paint.color = Colors.red;
-      } else if (i % 10 == 2) {
-        paint.color = Colors.green;
-      } else if (i % 10 == 3) {
-        paint.color = Colors.yellow;
-      } else if (i % 10 == 4) {
-        paint.color = Colors.purple;
-      } else if (i % 10 == 5) {
-        paint.color = Colors.orange;
-      } else if (i % 10 == 6) {
-        paint.color = Colors.pink;
-      } else if (i % 10 == 7) {
-        paint.color = Colors.teal;
-      } else if (i % 10 == 8) {
-        paint.color = Colors.brown;
-      } else {
-        paint.color = Colors.cyan;
-      }
+      paint.color = getColor(i);
 
       for (var j = 0; j < robots[i].length; j++) {
         canvas.drawCircle(
