@@ -35,6 +35,12 @@ class PathDrawer extends CustomPainter {
 
       // Draw the path of the robot
       for (var j = 0; j < paths[i].length - 1; j++) {
+        // Only draw the line if the robot has moved more than 0.1 meters
+        if (sqrt(pow(paths[i][j].x - paths[i][j + 1].x, 2) +
+                pow(paths[i][j].y - paths[i][j + 1].y, 2)) >
+            0.4) {
+          continue;
+        }
         canvas.drawLine(
           Offset(paths[i][j].getXScreen(size.width, fieldWidth),
               paths[i][j].getYScreen(size.height, fieldWidth)),
