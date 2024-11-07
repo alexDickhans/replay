@@ -132,10 +132,6 @@ class _MyHomePageState extends State<MyHomePage> {
     bool playing = false;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
       body: DropTarget(
         onDragDone: (details) async {
           if (details.files.isNotEmpty) {
@@ -155,167 +151,188 @@ class _MyHomePageState extends State<MyHomePage> {
             }
           }
         },
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 100),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: IconButton.filledTonal(
-                                onPressed: () {
-                                  // Open file
-                                  _openFile();
-                                },
-                                icon: const Icon(Icons.add)),
-                          ),
-                          Expanded(
-                            child: IconButton.filledTonal(
-                                isSelected: _play_mult != 0.0,
-                                icon: const Icon(Icons.replay),
-                                selectedIcon: const Icon(Icons.pause),
-                                onPressed: () {
-                                  setState(() {
-                                    if (_play_mult == 0.0) {
-                                      _play_mult = -1.0;
-                                    } else {
-                                      _play_mult = 0.0;
-                                    }
-                                  });
-                                }),
-                          ),
-                          Expanded(
-                            child: IconButton.filledTonal(
-                                isSelected: _play_mult != 0.0,
-                                icon: const Icon(Icons.play_arrow),
-                                selectedIcon: const Icon(Icons.pause),
-                                onPressed: () {
-                                  setState(() {
-                                    if (_play_mult == 0.0) {
-                                      _play_mult = 1.0;
-                                    } else {
-                                      _play_mult = 0.0;
-                                    }
-                                  });
-                                }),
-                          ),
-                          Expanded(
-                              child: IconButton.filledTonal(
-                                  onPressed: () {
-                                    setState(() {
-                                      savedTime = positionLists
-                                          .map((e) => e.$2)
-                                          .toList();
-                                    });
-                                  },
-                                  icon: const Icon(Icons.save))),
-                          Expanded(
-                              child: IconButton.filledTonal(
-                                  onPressed: () {
-                                    setState(() {
-                                      for (int i = 0;
-                                          i < positionLists.length;
-                                          i++) {
-                                        positionLists[i] =
-                                            (positionLists[i].$1, savedTime[i]);
-                                      }
-                                    });
-                                  },
-                                  icon: const Icon(Icons.restore))),
-                          Expanded(
-                              child: IconButton.filledTonal(
-                                  onPressed: () {
-                                    setState(() {
-                                      paths.clear();
-                                    });
-                                  },
-                                  icon: const Icon(Icons.clear))),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 500,
-                        child: ListView.builder(
-                            itemCount: positionLists.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Row(
-                                  children: [
-                                    IconButton.filledTonal(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 100),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: IconButton.filledTonal(
+                                    onPressed: () {
+                                      // Open file
+                                      _openFile();
+                                    },
+                                    icon: const Icon(Icons.add)),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: IconButton.filledTonal(
+                                    isSelected: _play_mult != 0.0,
+                                    icon: const Icon(Icons.replay),
+                                    selectedIcon: const Icon(Icons.pause),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (_play_mult == 0.0) {
+                                          _play_mult = -1.0;
+                                        } else {
+                                          _play_mult = 0.0;
+                                        }
+                                      });
+                                    }),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: IconButton.filledTonal(
+                                    isSelected: _play_mult != 0.0,
+                                    icon: const Icon(Icons.play_arrow),
+                                    selectedIcon: const Icon(Icons.pause),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (_play_mult == 0.0) {
+                                          _play_mult = 1.0;
+                                        } else {
+                                          _play_mult = 0.0;
+                                        }
+                                      });
+                                    }),
+                              ),
+                            ),
+                            Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: IconButton.filledTonal(
                                       onPressed: () {
                                         setState(() {
-                                          positionLists.removeAt(index);
+                                          savedTime = positionLists
+                                              .map((e) => e.$2)
+                                              .toList();
                                         });
                                       },
-                                      icon: const Icon(Icons.delete),
-                                      color: getColor(index),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        children: [
-                                          Slider(
-                                              min: positionLists[index]
-                                                  .$1
-                                                  .minTime(),
-                                              max: positionLists[index]
-                                                  .$1
-                                                  .maxTime(),
-                                              label: positionLists[index]
-                                                  .$2
-                                                  .toString(),
-                                              value: positionLists[index]
-                                                  .$2
-                                                  .clamp(
-                                                      positionLists[index]
-                                                          .$1
-                                                          .minTime(),
-                                                      positionLists[index]
-                                                          .$1
-                                                          .maxTime()),
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  positionLists[index] = (
-                                                    positionLists[index].$1,
-                                                    value
-                                                  );
-                                                });
-                                              }),
-                                          Text(
-                                            style: const TextStyle(
-                                                fontSize: 10),
-                                              positionLists[index].$1.filename),
-                                        ],
+                                      icon: const Icon(Icons.save)),
+                                )),
+                            Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: IconButton.filledTonal(
+                                      onPressed: () {
+                                        setState(() {
+                                          for (int i = 0;
+                                              i < positionLists.length;
+                                              i++) {
+                                            positionLists[i] =
+                                                (positionLists[i].$1, savedTime[i]);
+                                          }
+                                        });
+                                      },
+                                      icon: const Icon(Icons.restore)),
+                                )),
+                            Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: IconButton.filledTonal(
+                                      onPressed: () {
+                                        setState(() {
+                                          paths.clear();
+                                        });
+                                      },
+                                      icon: const Icon(Icons.clear)),
+                                )),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 500,
+                          child: ListView.builder(
+                              itemCount: positionLists.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: Row(
+                                    children: [
+                                      IconButton.filledTonal(
+                                        onPressed: () {
+                                          setState(() {
+                                            positionLists.removeAt(index);
+                                          });
+                                        },
+                                        icon: const Icon(Icons.delete),
+                                        color: getColor(index),
                                       ),
-                                    )
-                                  ],
-                                ),
-                              );
-                            }),
-                      ),
-                    ],
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            Slider(
+                                                min: positionLists[index]
+                                                    .$1
+                                                    .minTime(),
+                                                max: positionLists[index]
+                                                    .$1
+                                                    .maxTime(),
+                                                label: positionLists[index]
+                                                    .$2
+                                                    .toString(),
+                                                value: positionLists[index]
+                                                    .$2
+                                                    .clamp(
+                                                        positionLists[index]
+                                                            .$1
+                                                            .minTime(),
+                                                        positionLists[index]
+                                                            .$1
+                                                            .maxTime()),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    positionLists[index] = (
+                                                      positionLists[index].$1,
+                                                      value
+                                                    );
+                                                  });
+                                                }),
+                                            Text(
+                                              style: const TextStyle(
+                                                  fontSize: 10),
+                                                positionLists[index].$1.filename),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            AspectRatio(
-              aspectRatio: 1,
-              child: Stack(
-                children: [
-                  Image.asset("assets/empty.png"),
-                  CustomPaint(
-                    size: Size.infinite,
-                    painter: PathDrawer(robots, paths),
-                  ),
-                ],
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  children: [
+                    Image.asset("assets/empty.png"),
+                    CustomPaint(
+                      size: Size.infinite,
+                      painter: PathDrawer(robots, paths),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
