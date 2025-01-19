@@ -31,6 +31,41 @@ class PathDrawer extends CustomPainter {
           1.5,
           paint,
         );
+
+        const double robotSizeMeters = 0.1778*2;
+        final double robotSizePixels =
+            robotSizeMeters / fieldWidth * size.width;
+
+        if (robots[i][j].t != null) {
+          final double theta = -robots[i][j].t!;
+          final double halfSize = robotSizePixels / 2;
+
+          final Offset center = Offset(
+            robots[i][j].getXScreen(size.width, fieldWidth),
+            robots[i][j].getYScreen(size.height, fieldWidth),
+          );
+
+          final List<Offset> corners = [
+            Offset(-halfSize, -halfSize),
+            Offset(halfSize, -halfSize),
+            Offset(halfSize, halfSize),
+            Offset(-halfSize, halfSize),
+          ];
+
+          final List<Offset> rotatedCorners = corners.map((corner) {
+            final double x = corner.dx * cos(theta) - corner.dy * sin(theta);
+            final double y = corner.dx * sin(theta) + corner.dy * cos(theta);
+            return center + Offset(x, y);
+          }).toList();
+
+          for (int k = 0; k < rotatedCorners.length; k++) {
+            canvas.drawLine(
+              rotatedCorners[k],
+              rotatedCorners[(k + 1) % rotatedCorners.length],
+              paint,
+            );
+          }
+        }
       }
 
       // Draw the path of the robot
